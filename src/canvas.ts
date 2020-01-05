@@ -1,4 +1,4 @@
-import { Player, Ball, GameObject, GameState } from './types';
+import { Player, Ball, GameObject, GameState, Point2D } from './types';
 import { GAME_SIZE } from './constants';
 
 export const COLS = 30;
@@ -55,9 +55,9 @@ export const render = (gameState: GameState) => {
     .fill(0)
     .map((e) => Array(GAME_SIZE).fill(0));
 
-  game[player.x][player.y] = PLAYER;
   game[ball.x][ball.y] = BALL;
 
+  player.paddle.forEach(( paddleBlock: Point2D ) => { game[paddleBlock.x][paddleBlock.y] = PLAYER; });
   bricks.forEach((brick: GameObject) => { game[brick.x][brick.y] = BRICK; });
 
   document.body.innerHTML = `Score: ${player.score} | Lives: ${player.lives} <br/>`;
