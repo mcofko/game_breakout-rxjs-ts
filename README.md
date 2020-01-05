@@ -1,2 +1,2 @@
-# game_breakout-rxjs-ts
+# Breakout with RxJS (reactive)
 Simple Breakout game developed in reactive style with RxJS
