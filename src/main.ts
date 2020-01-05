@@ -30,7 +30,7 @@ import {
 import { GAME_SIZE, BALL_SPEED, BRICK_SIZE } from './constants';
 import { Player, Ball, GameObject, GameState, Point2D } from './types';
 import { noop, render, renderGameOverLite } from './canvas';
-import { isGameOver, move } from './utils';
+import { isGameOver, move, processGameCollisions } from './utils';
 
 const createGameObject = (x, y) => ({x, y});
 const createBrickObject: (x: number, y: number) => Point2D[] = function (x, y) {
@@ -39,9 +39,10 @@ const createBrickObject: (x: number, y: number) => Point2D[] = function (x, y) {
   return paddle;
 };
 
+const createGame = () => {
 const player$ = combineLatest(
   of({ paddle: createBrickObject(GAME_SIZE - 2, (GAME_SIZE / 2) - 1), score: 0, lives: 3 }),
-  fromEvent(document, 'keyup').pipe(
+  fromEvent(document, 'keydown').pipe(
     startWith({code: 'ArrowLeft'}),
     pluck('code'),
     filter(key => key === 'ArrowLeft' || key === 'ArrowRight')
@@ -75,20 +76,6 @@ const brick$ = generate(1, x => x < 8, x => x + 1)
     toArray()
   );
 
-const processGameCollisions = (_, {player, ball, bricks}: GameState)
-  : GameState => {
-    (collidingBrickIndex => collidingBrickIndex > -1
-      ? (bricks.splice(collidingBrickIndex, 1), ball.dirX *= -1, player.score++) : noop)
-
-    (bricks.findIndex(e => e.x === ball.x && e.y === ball.y));
-
-    ball.dirX *= (player.paddle[0].x === ball.x && player.paddle.some((paddleBlock: Point2D) => paddleBlock.y === ball.y)) ? -1 : 1;
-
-    ball.x > player.paddle[0].x ? (player.lives-- , ball.x = (GAME_SIZE / 2) - 3) : noop;
-
-    return {player: player, ball: ball, bricks: bricks};
-  };
-
 combineLatest(player$, ball$, brick$, (v1, v2, v3) => ({player: v1, ball: v2, bricks: v3}))
   .pipe(
     scan<GameState, GameState>( (prevState, newState ) => {
@@ -97,4 +84,16 @@ combineLatest(player$, ball$, brick$, (v1, v2, v3) => ({player: v1, ball: v2, br
     tap(render),
     takeWhile( state => !isGameOver(state))
   )
-  .subscribe((value: GameState) => { }, (e) => { console.log('Error: ' + e); }, () => { console.log('completed'); renderGameOverLite(); });
+  .subscribe((value: GameState) => { }, (e) => { console.log('Error: ' + e); }, () => {
+    console.log('completed'); renderGameOverLite();
+
+    click$.subscribe();
+  });
+};
+
+let click$ = fromEvent(document, 'click').pipe(
+  first(),
+  tap(() => { createGame(); })
+);
+
+createGame();
