@@ -31,6 +31,7 @@ import { GAME_SIZE, BALL_SPEED, BRICK_SIZE } from './constants';
 import { Player, Ball, GameObject, GameState, Point2D } from './types';
 import { noop, render, renderGameOverLite } from './canvas';
 import { isGameOver, move, processGameCollisions } from './utils';
+import { debug } from './operators';
 
 const createGameObject = (x, y) => ({x, y});
 const createBrickObject: (x: number, y: number) => Point2D[] = function (x, y) {
@@ -48,7 +49,6 @@ const player$ = combineLatest(
     filter(key => key === 'ArrowLeft' || key === 'ArrowRight')
   )
 ).pipe(
-  tap(console.log),
   map(move)
 );
 
